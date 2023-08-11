@@ -1,5 +1,5 @@
 [package]
-name = "trie"
+name = "littlechestnutgames/trie"
 description = "A generalized trie implementation for quick prefix searching."
 version = "1.0.0"
 edition = "2021"
