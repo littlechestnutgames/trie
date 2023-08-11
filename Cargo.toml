@@ -1,7 +1,14 @@
 [package]
 name = "trie"
+description = "A generalized trie implementation for quick prefix searching."
 version = "1.0.0"
 edition = "2021"
+authors = ["LittleChestnutGames <littlechestnutgames@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/littlechestnutgames/trie"
+keywords = ["trie", "keys", "search"]
+categories = ["data-structures","caching"]
 
 [lib]
 name = "trie"
