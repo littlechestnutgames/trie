@@ -1,4 +1,4 @@
-# Changes to littlechestnut-trie
+# Changes to littlechestnutgames-trie
 
 ## 2.0.0
 ### Breaking Changes
