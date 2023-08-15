@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use super::tokenizer::Tokenizer;
 
 pub struct Trie<T> {
     count: u64,
-    children: HashMap<String, Trie<T>>,
-    data: Option<T>,
+    pub children: HashMap<String, Trie<T>>,
+    pub data: Option<T>,
     is_key_end: bool,
     tokenizer: Tokenizer,
 }
@@ -63,18 +63,53 @@ impl<T> Trie<T> {
         }
     }
 
+    /// Creates a new `Trie<T>` that has a `Tokenizer::Custom` which the library
+    /// user specifies their own tokenize and detokenize functions.
+    ///
+    /// Arguments
+    ///
+    /// `tokenize_fn` - `Arc<dyn Fn(String) -> Vec<String>>`, a function that takes in a `String` and returns a `Vec<String>`, wrapped in an `Arc`. This function is run on each key operation to split keys into different `Trie` levels.
+    /// `detokenize_fn` - `Arc<dyn Fn(Vec<String>) -> String>`, a function that takes in a `Vec<String>`, wrapped in an `Arc`. This function is run to reassemble `Trie` levels into keys.
+    ///
+    /// Returns
+    ///
+    /// `Trie<T>` - A new `Trie` with `tokenizer` set to `Tokenizer::Custom`.
+    pub fn with_custom_tokenization(
+        tokenize_fn: Arc<dyn Fn(String) -> Vec<String>>,
+        detokenize_fn: Arc<dyn Fn(Vec<String>) -> String>
+    ) -> Self {
+        Self {
+            children: HashMap::new(),
+            count: 0,
+            data: None,
+            is_key_end: false,
+            tokenizer: Tokenizer::Custom(
+                tokenize_fn.clone(),
+                detokenize_fn.clone()
+            )
+        }
+    }
+
     /// Creates a new nearly blank `Trie<T>`, clones the `tokenizer` field from the original `Trie<T>`.
     ///
     /// Returns
     ///
     /// `Trie<T>`
     pub fn new_from_current(&self) -> Self {
+        let tokenizer = match &self.tokenizer {
+            Tokenizer::Slice(length) => Tokenizer::Slice(*length),
+            Tokenizer::Delimiter(delimiter) => Tokenizer::Delimiter(delimiter.clone()),
+            Tokenizer::Custom(tokenize_fn, detokenize_fn) => Tokenizer::Custom(
+                Arc::clone(tokenize_fn),
+                Arc::clone(detokenize_fn)
+            )
+        };
         Self {
             children: HashMap::new(),
             count: 0,
             data: None,
             is_key_end: false,
-            tokenizer: self.tokenizer.clone()
+            tokenizer
         }
     }
     /// Adds a complete `key` to the `Trie` structure.

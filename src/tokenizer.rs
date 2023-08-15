@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use unicode_segmentation::UnicodeSegmentation;
 
-#[derive(Clone)]
 pub enum Tokenizer {
     /// A slice based `Tokenizer`
     ///
@@ -9,7 +10,16 @@ pub enum Tokenizer {
     /// A delimiter based `Tokenizer`
     ///
     /// Will tokenize `String` and detokenize `Vec<String>` using a `String` delimiter.
-    Delimiter(String)
+    Delimiter(String),
+    /// A custom user defined `Tokenizer`
+    ///
+    /// Arguments
+    ///
+    /// `Box<dyn Fn(String) -> Vec<String>>` - A function that will be used to `tokenize` a key into tokens.
+    /// `Box<dyn Fn(Vec<String>) -> String` - A function that will be used to `detokenize` a `Vec<String>` of tokens into a `String`.
+    ///
+    /// Will tokenize and detokenize in a user defined way.
+    Custom(Arc<dyn Fn(String) -> Vec<String>>, Arc<dyn Fn(Vec<String>) -> String>)
 }
 
 impl Tokenizer {
@@ -47,6 +57,7 @@ impl Tokenizer {
             Self::Delimiter(delimiter) => {
                 key.split(delimiter).map(|s| s.to_string()).collect()
             }
+            Self::Custom(tokenize_fn, _) => tokenize_fn(key)
         }
     }
 
@@ -67,6 +78,7 @@ impl Tokenizer {
             Self::Delimiter(delimiter) => {
                 tokens.join(delimiter)
             }
+            Self::Custom(_, detokenize_fn) => detokenize_fn(tokens)
         }
     }
 }
